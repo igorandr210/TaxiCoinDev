@@ -22,12 +22,13 @@ namespace TokenAPI
             ByteCode = byteCode;
         }
 
-        public async void DeployContract(string senderAddress, string password, ulong gas, ulong totalSupply)
+        public async Task<TransactionReceipt> DeployContract(string senderAddress, string password, ulong gas)
         {
             var web3 = GetWeb3Account(senderAddress, password);
 
             var receipt = await web3.Eth.DeployContract.SendRequestAndWaitForReceiptAsync(Abi, ByteCode, senderAddress, new Nethereum.Hex.HexTypes.HexBigInteger(gas), null);
             ContractAddress = receipt.ContractAddress;
+            return receipt;
         }
 
         public async Task<TypeOfResult> CallFunctionByName<TypeOfResult>(string senderAddress, string password, string functionName, params object[] parametrsOfFunction)
@@ -41,26 +42,26 @@ namespace TokenAPI
             return result;
         }
 
-        public async Task<TransactionReceipt> CallFunctionByNameSendTransaction(string senderAddress, string password, string functionName,UInt64 Value,UInt64 Gas, params object[] parametrsOfFunction)
+        public async Task<TransactionReceipt> CallFunctionByNameSendTransaction(string senderAddress, string password, string functionName,UInt64 Value, UInt64 Gas, params object[] parametrsOfFunction)
         {
             var web3 = GetWeb3Account(senderAddress, password);
 
             var contract = web3.Eth.GetContract(Abi, ContractAddress);
             var calledFunction = contract.GetFunction(functionName);
 
-            //var gas = await calledFunction.EstimateGasAsync(senderAddress, null, null, parametrsOfFunction);
-            var receipt = await calledFunction.SendTransactionAndWaitForReceiptAsync(senderAddress,new HexBigInteger(Gas),new HexBigInteger(Value), null, parametrsOfFunction);
+            var gas = new HexBigInteger(Gas);// await calledFunction.EstimateGasAsync(senderAddress, null, new HexBigInteger(Value), parametrsOfFunction);
+            var receipt = await calledFunction.SendTransactionAndWaitForReceiptAsync(senderAddress,gas,new HexBigInteger(Value), null, parametrsOfFunction);
             return receipt;
         }
 
-        public async Task<TransactionReceipt> CallFunctionByNameSendTransaction(string senderAddress, string password, string functionName, params object[] parametrsOfFunction)
+        public async Task<TransactionReceipt> CallFunctionByNameSendTransaction(string senderAddress, string password, string functionName,UInt64 Gas, params object[] parametrsOfFunction)
         {
             var web3 = GetWeb3Account(senderAddress, password);
 
             var contract = web3.Eth.GetContract(Abi, ContractAddress);
             var calledFunction = contract.GetFunction(functionName);
 
-            var gas = await calledFunction.EstimateGasAsync(senderAddress, null, null, parametrsOfFunction);
+            var gas = new HexBigInteger(Gas); //await calledFunction.EstimateGasAsync(senderAddress, null, null, parametrsOfFunction);
             var receipt = await calledFunction.SendTransactionAndWaitForReceiptAsync(senderAddress, gas, null, null, parametrsOfFunction);
             return receipt;
         }
